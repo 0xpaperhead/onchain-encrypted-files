@@ -9,7 +9,7 @@ pub mod state;
 
 use contexts::*;
 
-declare_id!("DvaXdKkfmfkKkkYGsrxjvdrqkFUqKh8QqrqBoVcUUmgn");
+declare_id!("13ZhnnA6nfDW2H9g2LsY2dVPLjEnHTW4U51kTKWegENC");
 
 #[program]
 pub mod onchain_encrypted_images {

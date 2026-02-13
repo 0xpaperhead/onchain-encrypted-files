@@ -1,12 +1,12 @@
 [toolchain]
-package_manager = "yarn"
+package_manager = "bun"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-onchain_encrypted_images = "DvaXdKkfmfkKkkYGsrxjvdrqkFUqKh8QqrqBoVcUUmgn"
+onchain_encrypted_images = "13ZhnnA6nfDW2H9g2LsY2dVPLjEnHTW4U51kTKWegENC"
 
 [registry]
 url = "https://api.apr.dev"
