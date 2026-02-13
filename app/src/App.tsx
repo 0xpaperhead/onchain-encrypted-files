@@ -1,37 +1,59 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APITester } from "./APITester";
+import { useState } from "react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { UploadPanel } from "./components/UploadPanel";
+import { GalleryPanel } from "./components/GalleryPanel";
+import { ImageViewDialog } from "./components/ImageViewDialog";
 import "./index.css";
 
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
-
 export function App() {
+  const [activeTab, setActiveTab] = useState("upload");
+  const [viewImageId, setViewImageId] = useState<string | null>(null);
+  const [viewContentType, setViewContentType] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  function handleView(imageId: string, contentType: string) {
+    setViewImageId(imageId);
+    setViewContentType(contentType);
+    setDialogOpen(true);
+  }
+
+  function handleUploadComplete() {
+    setActiveTab("gallery");
+  }
+
   return (
-    <div className="container mx-auto p-8 text-center relative z-10">
-      <div className="flex justify-center items-center gap-8 mb-8">
-        <img
-          src={logo}
-          alt="Bun Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#646cffaa] scale-120"
-        />
-        <img
-          src={reactLogo}
-          alt="React Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#61dafbaa] [animation:spin_20s_linear_infinite]"
-        />
+    <div className="container mx-auto max-w-4xl p-4 sm:p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Onchain Encrypted Images</h1>
+        <WalletMultiButton />
       </div>
-      <Card>
-        <CardHeader className="gap-4">
-          <CardTitle className="text-3xl font-bold">Bun + React</CardTitle>
-          <CardDescription>
-            Edit <code className="rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono">src/App.tsx</code> and save to
-            test HMR
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <APITester />
-        </CardContent>
-      </Card>
+
+      <Separator className="mb-6" />
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="upload">Upload</TabsTrigger>
+          <TabsTrigger value="gallery">Gallery</TabsTrigger>
+        </TabsList>
+        <TabsContent value="upload">
+          <UploadPanel onUploadComplete={handleUploadComplete} />
+        </TabsContent>
+        <TabsContent value="gallery">
+          <GalleryPanel onView={handleView} />
+        </TabsContent>
+      </Tabs>
+
+      {/* View dialog */}
+      <ImageViewDialog
+        imageId={viewImageId}
+        contentType={viewContentType}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }
