@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program, EventParser } from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { expect } from "chai";
+import { describe, it, expect, beforeAll } from "bun:test";
 import { OnchainEncryptedImages } from "../target/types/onchain_encrypted_images";
 import {
   getImageUploadPda,
@@ -32,7 +32,7 @@ describe("onchain-encrypted-images", () => {
   let pda: PublicKey;
   let pdaBump: number;
 
-  before(async () => {
+  beforeAll(async () => {
     // Create 2500 bytes of deterministic test data (simulates an image)
     originalData = new Uint8Array(2500);
     for (let i = 0; i < originalData.length; i++) {
@@ -76,31 +76,25 @@ describe("onchain-encrypted-images", () => {
 
       const account = await program.account.imageUpload.fetch(pda);
 
-      expect(account.authority.toBase58()).to.equal(
-        authority.publicKey.toBase58()
-      );
-      expect(account.imageId).to.equal(imageId);
-      expect(account.totalChunks).to.equal(chunks.length);
-      expect(account.chunksUploaded).to.equal(0);
-      expect(account.finalized).to.equal(false);
-      expect(account.contentType).to.equal(contentType);
-      expect(account.createdAt.toNumber()).to.be.greaterThan(0);
-      expect(account.bump).to.equal(pdaBump);
+      expect(account.authority.toBase58()).toBe(authority.publicKey.toBase58());
+      expect(account.imageId).toBe(imageId);
+      expect(account.totalChunks).toBe(chunks.length);
+      expect(account.chunksUploaded).toBe(0);
+      expect(account.finalized).toBe(false);
+      expect(account.contentType).toBe(contentType);
+      expect(account.createdAt.toNumber()).toBeGreaterThan(0);
+      expect(account.bump).toBe(pdaBump);
     });
 
     it("rejects duplicate initialization (same image_id)", async () => {
-      try {
-        await program.methods
+      expect(
+        program.methods
           .initializeUpload(imageId, chunks.length, contentType)
           .accounts({
             authority: authority.publicKey,
           })
-          .rpc();
-        expect.fail("should have thrown");
-      } catch (err: any) {
-        // Account already initialized — Anchor/Solana will reject
-        expect(err).to.exist;
-      }
+          .rpc()
+      ).rejects.toThrow();
     });
 
     it("rejects zero chunks", async () => {
@@ -112,9 +106,9 @@ describe("onchain-encrypted-images", () => {
             authority: authority.publicKey,
           })
           .rpc();
-        expect.fail("should have thrown");
+        throw new Error("should have thrown");
       } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("ZeroChunks");
+        expect(err.error.errorCode.code).toBe("ZeroChunks");
       }
     });
   });
@@ -132,7 +126,7 @@ describe("onchain-encrypted-images", () => {
       }
 
       const account = await program.account.imageUpload.fetch(pda);
-      expect(account.chunksUploaded).to.equal(chunks.length);
+      expect(account.chunksUploaded).toBe(chunks.length);
     });
 
     it("rejects out-of-order chunk upload", async () => {
@@ -159,9 +153,9 @@ describe("onchain-encrypted-images", () => {
             imageUpload: oooPda,
           })
           .rpc();
-        expect.fail("should have thrown");
+        throw new Error("should have thrown");
       } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("InvalidChunkIndex");
+        expect(err.error.errorCode.code).toBe("InvalidChunkIndex");
       }
     });
 
@@ -189,9 +183,9 @@ describe("onchain-encrypted-images", () => {
             imageUpload: oversizedPda,
           })
           .rpc();
-        expect.fail("should have thrown");
+        throw new Error("should have thrown");
       } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("ChunkDataTooLarge");
+        expect(err.error.errorCode.code).toBe("ChunkDataTooLarge");
       }
     });
 
@@ -218,9 +212,9 @@ describe("onchain-encrypted-images", () => {
             imageUpload: emptyPda,
           })
           .rpc();
-        expect.fail("should have thrown");
+        throw new Error("should have thrown");
       } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("EmptyChunkData");
+        expect(err.error.errorCode.code).toBe("EmptyChunkData");
       }
     });
 
@@ -246,20 +240,16 @@ describe("onchain-encrypted-images", () => {
       );
       await provider.connection.confirmTransaction(sig);
 
-      try {
-        await program.methods
+      expect(
+        program.methods
           .uploadChunk(0, Buffer.from([1, 2, 3]))
           .accounts({
             authority: fakeAuthority.publicKey,
             imageUpload: unauthorizedPda,
           })
           .signers([fakeAuthority])
-          .rpc();
-        expect.fail("should have thrown");
-      } catch (err: any) {
-        // has_one constraint fails — seeds mismatch or constraint violation
-        expect(err).to.exist;
-      }
+          .rpc()
+      ).rejects.toThrow();
     });
   });
 
@@ -296,9 +286,9 @@ describe("onchain-encrypted-images", () => {
             imageUpload: incompletePda,
           })
           .rpc();
-        expect.fail("should have thrown");
+        throw new Error("should have thrown");
       } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("IncompleteUpload");
+        expect(err.error.errorCode.code).toBe("IncompleteUpload");
       }
     });
 
@@ -312,7 +302,7 @@ describe("onchain-encrypted-images", () => {
         .rpc();
 
       const account = await program.account.imageUpload.fetch(pda);
-      expect(account.finalized).to.equal(true);
+      expect(account.finalized).toBe(true);
     });
 
     it("rejects double finalization", async () => {
@@ -324,9 +314,9 @@ describe("onchain-encrypted-images", () => {
             imageUpload: pda,
           })
           .rpc();
-        expect.fail("should have thrown");
+        throw new Error("should have thrown");
       } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("AlreadyFinalized");
+        expect(err.error.errorCode.code).toBe("AlreadyFinalized");
       }
     });
 
@@ -339,9 +329,9 @@ describe("onchain-encrypted-images", () => {
             imageUpload: pda,
           })
           .rpc();
-        expect.fail("should have thrown");
+        throw new Error("should have thrown");
       } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("AlreadyFinalized");
+        expect(err.error.errorCode.code).toBe("AlreadyFinalized");
       }
     });
   });
@@ -350,7 +340,7 @@ describe("onchain-encrypted-images", () => {
     it("reconstructs and decrypts the original image from the ledger", async () => {
       // 1. Fetch metadata from PDA
       const account = await program.account.imageUpload.fetch(pda);
-      expect(account.finalized).to.equal(true);
+      expect(account.finalized).toBe(true);
       const totalChunks = account.totalChunks;
 
       // 2. Get all transaction signatures involving the PDA
@@ -385,7 +375,7 @@ describe("onchain-encrypted-images", () => {
 
       // 5. Sort by chunk_index and reassemble
       chunkEvents.sort((a, b) => a.chunkIndex - b.chunkIndex);
-      expect(chunkEvents.length).to.equal(totalChunks);
+      expect(chunkEvents.length).toBe(totalChunks);
 
       const reassembledChunks = chunkEvents.map((e) => e.data);
       const reassembledEncrypted = reassembleChunks(reassembledChunks);
@@ -393,7 +383,7 @@ describe("onchain-encrypted-images", () => {
       // Verify reassembled encrypted data matches original encrypted data
       expect(
         Buffer.from(reassembledEncrypted).equals(Buffer.from(encryptedData))
-      ).to.be.true;
+      ).toBe(true);
 
       // 6. Re-derive encryption key (sign same message again)
       const message = Buffer.from(`encrypt:${imageId}`);
@@ -404,8 +394,9 @@ describe("onchain-encrypted-images", () => {
       const decrypted = decryptData(derivedKey, reassembledEncrypted);
 
       // 8. Assert it matches the original
-      expect(Buffer.from(decrypted).equals(Buffer.from(originalData))).to.be
-        .true;
+      expect(Buffer.from(decrypted).equals(Buffer.from(originalData))).toBe(
+        true
+      );
     });
   });
 });

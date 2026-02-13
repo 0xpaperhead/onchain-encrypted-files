@@ -16,4 +16,4 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "bun test --timeout 1000000"
+test = "bun test tests/ --timeout 1000000"
