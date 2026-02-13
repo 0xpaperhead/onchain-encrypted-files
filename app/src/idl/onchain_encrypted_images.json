@@ -1,0 +1,397 @@
+{
+  "address": "13ZhnnA6nfDW2H9g2LsY2dVPLjEnHTW4U51kTKWegENC",
+  "metadata": {
+    "name": "onchain_encrypted_images",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "finalize_upload",
+      "discriminator": [
+        13,
+        254,
+        103,
+        85,
+        77,
+        3,
+        111,
+        129
+      ],
+      "accounts": [
+        {
+          "name": "image_upload",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  109,
+                  97,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "account",
+                "path": "image_upload.image_id",
+                "account": "ImageUpload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "image_upload"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_upload",
+      "discriminator": [
+        1,
+        241,
+        34,
+        247,
+        238,
+        4,
+        239,
+        29
+      ],
+      "accounts": [
+        {
+          "name": "image_upload",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  109,
+                  97,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "arg",
+                "path": "image_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "image_id",
+          "type": "string"
+        },
+        {
+          "name": "total_chunks",
+          "type": "u32"
+        },
+        {
+          "name": "content_type",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "upload_chunk",
+      "discriminator": [
+        130,
+        219,
+        165,
+        153,
+        119,
+        149,
+        252,
+        162
+      ],
+      "accounts": [
+        {
+          "name": "image_upload",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  105,
+                  109,
+                  97,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "account",
+                "path": "image_upload.image_id",
+                "account": "ImageUpload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "image_upload"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "chunk_index",
+          "type": "u32"
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ImageUpload",
+      "discriminator": [
+        184,
+        41,
+        85,
+        198,
+        3,
+        241,
+        39,
+        215
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ChunkUploaded",
+      "discriminator": [
+        179,
+        164,
+        69,
+        179,
+        35,
+        219,
+        108,
+        139
+      ]
+    },
+    {
+      "name": "UploadFinalized",
+      "discriminator": [
+        35,
+        112,
+        32,
+        41,
+        225,
+        22,
+        159,
+        179
+      ]
+    },
+    {
+      "name": "UploadInitialized",
+      "discriminator": [
+        31,
+        112,
+        119,
+        131,
+        1,
+        69,
+        98,
+        118
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ImageIdTooLong",
+      "msg": "Image ID exceeds maximum length of 64 characters"
+    },
+    {
+      "code": 6001,
+      "name": "ZeroChunks",
+      "msg": "Total chunks must be greater than zero"
+    },
+    {
+      "code": 6002,
+      "name": "TooManyChunks",
+      "msg": "Total chunks exceeds maximum of 10,000"
+    },
+    {
+      "code": 6003,
+      "name": "ChunkDataTooLarge",
+      "msg": "Chunk data exceeds maximum size of 900 bytes"
+    },
+    {
+      "code": 6004,
+      "name": "EmptyChunkData",
+      "msg": "Chunk data must not be empty"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidChunkIndex",
+      "msg": "Chunk index does not match expected next chunk"
+    },
+    {
+      "code": 6006,
+      "name": "AlreadyFinalized",
+      "msg": "Upload is already finalized"
+    },
+    {
+      "code": 6007,
+      "name": "IncompleteUpload",
+      "msg": "Not all chunks have been uploaded"
+    },
+    {
+      "code": 6008,
+      "name": "ContentTypeTooLong",
+      "msg": "Content type exceeds maximum length of 32 characters"
+    }
+  ],
+  "types": [
+    {
+      "name": "ChunkUploaded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "image_id",
+            "type": "string"
+          },
+          {
+            "name": "chunk_index",
+            "type": "u32"
+          },
+          {
+            "name": "data",
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ImageUpload",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "image_id",
+            "type": "string"
+          },
+          {
+            "name": "total_chunks",
+            "type": "u32"
+          },
+          {
+            "name": "chunks_uploaded",
+            "type": "u32"
+          },
+          {
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "name": "content_type",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UploadFinalized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "image_id",
+            "type": "string"
+          },
+          {
+            "name": "total_chunks",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UploadInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "image_id",
+            "type": "string"
+          },
+          {
+            "name": "total_chunks",
+            "type": "u32"
+          },
+          {
+            "name": "content_type",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}
