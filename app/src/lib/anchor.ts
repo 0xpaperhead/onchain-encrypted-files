@@ -3,7 +3,6 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import type { AnchorWallet } from "@solana/wallet-adapter-react";
 import type { OnchainEncryptedImages } from "@/idl/onchain_encrypted_images";
 import IDL from "@/idl/onchain_encrypted_images.json";
-import { PROGRAM_ID } from "./constants";
 
 export function getProvider(
   connection: Connection,
@@ -46,7 +45,7 @@ export async function fetchImagesByAuthority(
   const accounts = await program.account.imageUpload.all([
     {
       memcmp: {
-        offset: 8, // Anchor discriminator
+        offset: 8,
         bytes: authority.toBase58(),
       },
     },
