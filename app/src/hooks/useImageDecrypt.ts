@@ -55,10 +55,19 @@ export function useImageDecrypt() {
           "confirmed"
         );
 
-        const txs = await connection.getTransactions(
-          signatures.map((s) => s.signature),
-          { maxSupportedTransactionVersion: 0, commitment: "confirmed" }
-        );
+        // Fetch transactions one at a time to avoid devnet rate limits
+        const sigs = signatures.map((s) => s.signature);
+        const txs: (Awaited<ReturnType<typeof connection.getTransaction>> | null)[] = [];
+        for (let i = 0; i < sigs.length; i++) {
+          const tx = await connection.getTransaction(sigs[i], {
+            maxSupportedTransactionVersion: 0,
+            commitment: "confirmed",
+          });
+          txs.push(tx);
+          if (i < sigs.length - 1) {
+            await new Promise((r) => setTimeout(r, 400));
+          }
+        }
 
         // Parse ChunkUploaded events
         const eventParser = new EventParser(PROGRAM_ID, program.coder);
