@@ -15,5 +15,8 @@ url = "https://api.apr.dev"
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
+[programs.devnet]
+onchain_encrypted_images = "13ZhnnA6nfDW2H9g2LsY2dVPLjEnHTW4U51kTKWegENC"
+
 [scripts]
-test = "bun test tests/ --timeout 1000000"
+test = "bun test tests/onchain-encrypted-images.test.ts --timeout 1000000"

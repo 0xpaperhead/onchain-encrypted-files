@@ -2,6 +2,7 @@
   "license": "ISC",
   "scripts": {
     "test": "anchor test",
+    "test:devnet": "bun test tests/devnet-smoke.test.ts --timeout 1000000",
     "check": "tsc --noEmit",
     "lint:fix": "prettier --write \"**/*.{js,ts,tsx}\"",
     "lint": "prettier --check \"**/*.{js,ts,tsx}\""
