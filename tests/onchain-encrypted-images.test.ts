@@ -2,6 +2,8 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program, EventParser } from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { describe, it, expect, beforeAll } from "bun:test";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { OnchainEncryptedImages } from "../target/types/onchain_encrypted_images";
 import {
   getImageUploadPda,
@@ -24,7 +26,7 @@ describe("onchain-encrypted-images", () => {
 
   // Test data
   const imageId = "test-image-001";
-  const contentType = "image/png";
+  const contentType = "image/jpeg";
   let originalData: Uint8Array;
   let encryptedData: Uint8Array;
   let chunks: Buffer[];
@@ -33,11 +35,9 @@ describe("onchain-encrypted-images", () => {
   let pdaBump: number;
 
   beforeAll(async () => {
-    // Create 2500 bytes of deterministic test data (simulates an image)
-    originalData = new Uint8Array(2500);
-    for (let i = 0; i < originalData.length; i++) {
-      originalData[i] = i % 256;
-    }
+    // Load actual test image
+    const imagePath = join(__dirname, "middle-finger.jpg");
+    originalData = new Uint8Array(readFileSync(imagePath));
 
     // Airdrop SOL
     const airdropSig = await provider.connection.requestAirdrop(
