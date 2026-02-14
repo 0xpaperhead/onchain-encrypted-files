@@ -25,7 +25,6 @@ export function App() {
 
   return (
     <div className="container mx-auto max-w-4xl p-4 sm:p-8">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Onchain Encrypted Images</h1>
         <WalletMultiButton />
@@ -33,7 +32,6 @@ export function App() {
 
       <Separator className="mb-6" />
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
           <TabsTrigger value="upload">Upload</TabsTrigger>
@@ -47,7 +45,6 @@ export function App() {
         </TabsContent>
       </Tabs>
 
-      {/* View dialog */}
       <ImageViewDialog
         imageId={viewImageId}
         contentType={viewContentType}

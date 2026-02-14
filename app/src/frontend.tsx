@@ -1,18 +1,18 @@
 import { Buffer } from "buffer";
 globalThis.Buffer = Buffer;
 
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { WalletProvider } from "./components/WalletProvider";
 import { App } from "./App";
 
+// Clear any stale wallet state from previous debug sessions
+localStorage.removeItem("walletName");
+
 const elem = document.getElementById("root")!;
 const app = (
-  <StrictMode>
-    <WalletProvider>
-      <App />
-    </WalletProvider>
-  </StrictMode>
+  <WalletProvider>
+    <App />
+  </WalletProvider>
 );
 
 if (import.meta.hot) {

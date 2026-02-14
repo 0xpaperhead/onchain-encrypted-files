@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useConnection } from "@solana/wallet-adapter-react";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
 import { getProgram, fetchImagesByAuthority } from "@/lib/anchor";
 import type { ImageUploadAccount } from "@/lib/anchor";
 
@@ -23,12 +22,8 @@ export function useGallery() {
       setError(null);
 
       const program = getProgram(connection, wallet);
-      const accounts = await fetchImagesByAuthority(
-        program,
-        wallet.publicKey
-      );
+      const accounts = await fetchImagesByAuthority(program, wallet.publicKey);
 
-      // Sort by createdAt descending
       accounts.sort(
         (a, b) =>
           b.account.createdAt.toNumber() - a.account.createdAt.toNumber()

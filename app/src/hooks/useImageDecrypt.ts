@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { EventParser } from "@coral-xyz/anchor";
+import { useConnection, useWallet, useAnchorWallet } from "@solana/wallet-adapter-react";
 import { getProgram } from "@/lib/anchor";
 import {
   deriveEncryptionKey,
@@ -10,14 +9,13 @@ import {
   getImageUploadPda,
 } from "@/lib/crypto";
 import { PROGRAM_ID } from "@/lib/constants";
-import type { PublicKey } from "@solana/web3.js";
 
 export type DecryptStatus = "idle" | "signing" | "fetching" | "decrypting" | "done" | "error";
 
 export function useImageDecrypt() {
   const { connection } = useConnection();
-  const wallet = useAnchorWallet();
-  const { signMessage } = useWallet();
+  const anchorWallet = useAnchorWallet();
+  const { publicKey, connected, signMessage } = useWallet();
 
   const [status, setStatus] = useState<DecryptStatus>("idle");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -26,7 +24,7 @@ export function useImageDecrypt() {
 
   const decrypt = useCallback(
     async (imageId: string, expectedContentType: string) => {
-      if (!wallet || !signMessage) {
+      if (!connected || !publicKey || !anchorWallet || !signMessage) {
         setError("Wallet not connected");
         return;
       }
@@ -34,7 +32,6 @@ export function useImageDecrypt() {
       try {
         setStatus("idle");
         setError(null);
-        // Revoke previous URL
         if (imageUrl) {
           URL.revokeObjectURL(imageUrl);
           setImageUrl(null);
@@ -48,13 +45,9 @@ export function useImageDecrypt() {
 
         // Fetch transactions for the PDA
         setStatus("fetching");
-        const [pda] = getImageUploadPda(
-          PROGRAM_ID,
-          wallet.publicKey,
-          imageId
-        );
+        const [pda] = getImageUploadPda(PROGRAM_ID, publicKey, imageId);
 
-        const program = getProgram(connection, wallet);
+        const program = getProgram(connection, anchorWallet);
 
         const signatures = await connection.getSignaturesForAddress(
           pda,
@@ -68,10 +61,7 @@ export function useImageDecrypt() {
         );
 
         // Parse ChunkUploaded events
-        const eventParser = new EventParser(
-          PROGRAM_ID,
-          program.coder
-        );
+        const eventParser = new EventParser(PROGRAM_ID, program.coder);
 
         const chunkEvents: { chunkIndex: number; data: Uint8Array }[] = [];
 
@@ -90,9 +80,7 @@ export function useImageDecrypt() {
 
         // Sort and reassemble
         chunkEvents.sort((a, b) => a.chunkIndex - b.chunkIndex);
-        const reassembled = reassembleChunks(
-          chunkEvents.map((e) => e.data)
-        );
+        const reassembled = reassembleChunks(chunkEvents.map((e) => e.data));
 
         // Decrypt
         setStatus("decrypting");
@@ -110,7 +98,7 @@ export function useImageDecrypt() {
         setError(err instanceof Error ? err.message : String(err));
       }
     },
-    [wallet, signMessage, connection, imageUrl]
+    [publicKey, connected, signMessage, anchorWallet, connection, imageUrl]
   );
 
   const reset = useCallback(() => {

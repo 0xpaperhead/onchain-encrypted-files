@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet, useAnchorWallet } from "@solana/wallet-adapter-react";
 import { getProgram } from "@/lib/anchor";
 import {
   generateImageId,
@@ -23,7 +22,7 @@ export type UploadStatus =
 
 export function useImageUpload() {
   const { connection } = useConnection();
-  const wallet = useAnchorWallet();
+  const anchorWallet = useAnchorWallet();
   const { signMessage } = useWallet();
 
   const [status, setStatus] = useState<UploadStatus>("idle");
@@ -33,7 +32,7 @@ export function useImageUpload() {
 
   const upload = useCallback(
     async (file: File) => {
-      if (!wallet || !signMessage) {
+      if (!anchorWallet || !signMessage) {
         setError("Wallet not connected");
         return;
       }
@@ -46,41 +45,34 @@ export function useImageUpload() {
         const imageId = generateImageId();
         const contentType = file.type || "application/octet-stream";
 
-        // Read file as Uint8Array
         const arrayBuffer = await file.arrayBuffer();
         const plaintext = new Uint8Array(arrayBuffer);
 
-        // Sign message to derive encryption key
         setStatus("signing");
         const message = new TextEncoder().encode(`encrypt:${imageId}`);
         const signature = await signMessage(message);
         const encryptionKey = deriveEncryptionKey(signature);
 
-        // Encrypt
         setStatus("encrypting");
         const encrypted = encryptData(encryptionKey, plaintext);
 
-        // Chunk
         const chunks = chunkData(encrypted);
         setProgress({ current: 0, total: chunks.length });
 
-        // Get program
-        const program = getProgram(connection, wallet);
+        const program = getProgram(connection, anchorWallet);
 
-        // Initialize upload
         setStatus("initializing");
         await program.methods
           .initializeUpload(imageId, chunks.length, contentType)
           .accounts({
-            authority: wallet.publicKey,
+            authority: anchorWallet.publicKey,
           })
           .rpc();
 
-        // Upload chunks
         setStatus("uploading");
         const [pda] = getImageUploadPda(
           PROGRAM_ID,
-          wallet.publicKey,
+          anchorWallet.publicKey,
           imageId
         );
 
@@ -88,19 +80,18 @@ export function useImageUpload() {
           await program.methods
             .uploadChunk(i, Buffer.from(chunks[i]!))
             .accounts({
-              authority: wallet.publicKey,
+              authority: anchorWallet.publicKey,
               imageUpload: pda,
             })
             .rpc();
           setProgress({ current: i + 1, total: chunks.length });
         }
 
-        // Finalize
         setStatus("finalizing");
         const finalizeTx = await program.methods
           .finalizeUpload()
           .accounts({
-            authority: wallet.publicKey,
+            authority: anchorWallet.publicKey,
             imageUpload: pda,
           })
           .rpc();
@@ -112,7 +103,7 @@ export function useImageUpload() {
         setError(err instanceof Error ? err.message : String(err));
       }
     },
-    [wallet, signMessage, connection]
+    [anchorWallet, signMessage, connection]
   );
 
   const reset = useCallback(() => {
